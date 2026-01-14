@@ -8,31 +8,32 @@ import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredAr
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.basecommands.CommandBase;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import javax.annotation.Nonnull;
 
 public class EcoCommand extends CommandBase {
 
     private final EconomyService economyService;
     private final RequiredArg<String> actionArg;
     private final RequiredArg<PlayerRef> playerArg;
-    private final RequiredArg<Long> amountArg;
+    private final RequiredArg<String> amountArg;
 
     public EcoCommand(String name, String description, EconomyService economyService) {
         super(name, description);
         this.economyService = economyService;
         this.actionArg = this.withRequiredArg("action", "hytaleeco.command.eco.action", ArgTypes.STRING);
         this.playerArg = this.withRequiredArg("player", "hytaleeco.command.eco.player", ArgTypes.PLAYER_REF);
-        this.amountArg = this.withRequiredArg("amount", "hytaleeco.command.eco.amount", ArgTypes.LONG);
+        this.amountArg = this.withRequiredArg("amount", "hytaleeco.command.eco.amount", ArgTypes.STRING);
     }
 
     @Override
-    protected void executeSync(CommandContext context) {
+    protected void executeSync(@Nonnull CommandContext context) {
         if (!PermissionUtil.hasEconomyAdmin(context.sender())) {
             context.sendMessage(MessageUtil.raw("You do not have permission to use this command."));
             return;
         }
         String action = context.get(this.actionArg);
         PlayerRef target = context.get(this.playerArg);
-        Long amount = context.get(this.amountArg);
+        Long amount = parseAmount(context.get(this.amountArg));
         if (action == null || target == null || amount == null) {
             context.sendMessage(MessageUtil.raw("Usage: /eco give {user} {amt} | /eco set {user} {amt}"));
             return;
@@ -68,5 +69,16 @@ public class EcoCommand extends CommandBase {
         economyService.setBalance(target.getUuid(), amount);
         context.sendMessage(MessageUtil.raw("Set " + target.getUsername() + "'s balance to " + amount + "."));
         target.sendMessage(MessageUtil.raw("Your balance was set to " + amount + " by an admin."));
+    }
+
+    private Long parseAmount(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return Long.parseLong(raw);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 }

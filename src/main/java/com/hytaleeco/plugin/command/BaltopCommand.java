@@ -6,6 +6,7 @@ import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.basecommands.CommandBase;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 
 public class BaltopCommand extends CommandBase {
 
@@ -17,7 +18,7 @@ public class BaltopCommand extends CommandBase {
     }
 
     @Override
-    protected void executeSync(CommandContext context) {
+    protected void executeSync(@Nonnull CommandContext context) {
         List<EconomyService.DisplayBalance> top = economyService.topBalances(10);
         if (top.isEmpty()) {
             context.sendMessage(MessageUtil.raw("No balances recorded yet."));

@@ -8,30 +8,31 @@ import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredAr
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.basecommands.CommandBase;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import javax.annotation.Nonnull;
 
 public class PayCommand extends CommandBase {
 
     private final EconomyService economyService;
     private final RequiredArg<PlayerRef> playerArg;
-    private final RequiredArg<Long> amountArg;
+    private final RequiredArg<String> amountArg;
 
     public PayCommand(String name, String description, EconomyService economyService) {
         super(name, description);
         this.economyService = economyService;
         this.playerArg = this.withRequiredArg("player", "hytaleeco.command.pay.player", ArgTypes.PLAYER_REF);
-        this.amountArg = this.withRequiredArg("amount", "hytaleeco.command.pay.amount", ArgTypes.LONG);
+        this.amountArg = this.withRequiredArg("amount", "hytaleeco.command.pay.amount", ArgTypes.STRING);
     }
 
     @Override
-    protected void executeSync(CommandContext context) {
+    protected void executeSync(@Nonnull CommandContext context) {
         PlayerRef sender = context.sender().getPlayer();
         if (sender == null) {
             context.sendMessage(MessageUtil.raw("Only players can use /pay."));
             return;
         }
         PlayerRef target = context.get(this.playerArg);
-        Long amount = context.get(this.amountArg);
-        if (amount == null || amount <= 0) {
+        Long amount = parsePositiveAmount(context.get(this.amountArg));
+        if (amount == null) {
             context.sendMessage(MessageUtil.raw("Amount must be a number greater than 0."));
             return;
         }
@@ -50,6 +51,18 @@ public class PayCommand extends CommandBase {
             case INSUFFICIENT_FUNDS -> context.sendMessage(MessageUtil.raw("You do not have enough funds."));
             case SELF_TRANSFER -> context.sendMessage(MessageUtil.raw("You cannot pay yourself."));
             case INVALID_AMOUNT -> context.sendMessage(MessageUtil.raw("Amount must be a number greater than 0."));
+        }
+    }
+
+    private Long parsePositiveAmount(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            long value = Long.parseLong(raw);
+            return value > 0 ? value : null;
+        } catch (NumberFormatException ex) {
+            return null;
         }
     }
 }

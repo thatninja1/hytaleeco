@@ -7,6 +7,7 @@ import com.hypixel.hytale.server.core.command.system.arguments.system.OptionalAr
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.basecommands.CommandBase;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import javax.annotation.Nonnull;
 
 public class BalCommand extends CommandBase {
 
@@ -21,7 +22,7 @@ public class BalCommand extends CommandBase {
     }
 
     @Override
-    protected void executeSync(CommandContext context) {
+    protected void executeSync(@Nonnull CommandContext context) {
         PlayerRef target = context.get(this.playerArg);
         PlayerRef sender = context.sender().getPlayer();
         if (target == null && sender == null) {

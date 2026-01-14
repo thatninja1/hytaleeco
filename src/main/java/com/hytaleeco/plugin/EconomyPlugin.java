@@ -11,6 +11,7 @@ import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 
 public class EconomyPlugin extends JavaPlugin {
@@ -18,7 +19,7 @@ public class EconomyPlugin extends JavaPlugin {
     private final JavaPluginInit init;
     private EconomyService economyService;
 
-    public EconomyPlugin(JavaPluginInit init) {
+    public EconomyPlugin(@Nonnull JavaPluginInit init) {
         super(init);
         this.init = init;
     }
@@ -44,6 +45,8 @@ public class EconomyPlugin extends JavaPlugin {
         logger.info("Registered /baltop");
         init.commandRegistry().registerCommand(new EcoCommand("eco", "Economy admin commands", economyService));
         logger.info("Registered /eco");
+        logger.info("Registered /eco give");
+        logger.info("Registered /eco set");
         logger.info("EconomyPlugin setup complete");
     }
 
