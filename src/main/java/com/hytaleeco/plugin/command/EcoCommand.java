@@ -1,12 +1,11 @@
 package com.hytaleeco.plugin.command;
 
 import com.hytaleeco.plugin.economy.EconomyService;
+import com.hytaleeco.plugin.util.CommandArgs;
 import com.hytaleeco.plugin.util.MessageUtil;
 import com.hytaleeco.plugin.util.PermissionUtil;
 import com.hytaleeco.plugin.util.PlayerResolver;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
-import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
-import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.basecommands.CommandBase;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import javax.annotation.Nonnull;
@@ -14,16 +13,12 @@ import javax.annotation.Nonnull;
 public class EcoCommand extends CommandBase {
 
     private final EconomyService economyService;
-    private final RequiredArg<String> actionArg;
-    private final RequiredArg<String> playerArg;
-    private final RequiredArg<String> amountArg;
+    private final String commandName;
 
     public EcoCommand(String name, String description, EconomyService economyService) {
         super(name, description);
         this.economyService = economyService;
-        this.actionArg = this.withRequiredArg("action", "hytaleeco.command.eco.action", ArgTypes.STRING);
-        this.playerArg = this.withRequiredArg("player", "hytaleeco.command.eco.player", ArgTypes.STRING);
-        this.amountArg = this.withRequiredArg("amount", "hytaleeco.command.eco.amount", ArgTypes.STRING);
+        this.commandName = name;
     }
 
     @Override
@@ -32,11 +27,16 @@ public class EcoCommand extends CommandBase {
             context.sendMessage(MessageUtil.raw("You do not have permission to use this command."));
             return;
         }
-        String action = context.get(this.actionArg);
-        String targetName = context.get(this.playerArg);
-        Long amount = parseAmount(context.get(this.amountArg));
-        if (action == null || targetName == null || amount == null) {
-            context.sendMessage(MessageUtil.raw("Usage: /eco give {user} {amt} | /eco set {user} {amt}"));
+        java.util.List<String> args = CommandArgs.getArgs(context, commandName);
+        if (args.size() < 3) {
+            context.sendMessage(MessageUtil.raw("Usage: /eco give <user> <amt> | /eco set <user> <amt>"));
+            return;
+        }
+        String action = args.get(0);
+        String targetName = args.get(1);
+        Long amount = parseAmount(args.get(2));
+        if (amount == null) {
+            context.sendMessage(MessageUtil.raw("Amount must be a number 0 or higher."));
             return;
         }
         PlayerRef target = PlayerResolver.findOnlinePlayer(targetName);
@@ -53,7 +53,7 @@ public class EcoCommand extends CommandBase {
         switch (action.toLowerCase()) {
             case "give" -> handleGive(amount, context, target);
             case "set" -> handleSet(amount, context, target);
-            default -> context.sendMessage(MessageUtil.raw("Usage: /eco give {user} {amt} | /eco set {user} {amt}"));
+            default -> context.sendMessage(MessageUtil.raw("Usage: /eco give <user> <amt> | /eco set <user> <amt>"));
         }
     }
 

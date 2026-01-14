@@ -18,17 +18,19 @@ public final class CommandRegistrar {
         this.logger = logger;
     }
 
-    public boolean registerCommand(Object command) {
+    public String registerCommand(Object command) {
         if (!ensureRegistry()) {
-            logger.warning("Failed to locate a command registry/manager.");
-            return false;
+            String message = "Failed to locate a command registry/manager.";
+            logger.warning(message);
+            return message;
         }
         try {
             registerMethod.invoke(registry, command);
-            return true;
+            return null;
         } catch (Exception ex) {
-            logger.warning("Failed to register command: " + ex.getMessage());
-            return false;
+            String message = ex.getClass().getSimpleName() + ": " + ex.getMessage();
+            logger.warning("Failed to register command: " + message);
+            return message;
         }
     }
 

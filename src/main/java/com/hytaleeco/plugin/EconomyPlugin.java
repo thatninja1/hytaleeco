@@ -39,7 +39,7 @@ public class EconomyPlugin extends JavaPlugin {
         }
         this.economyService = new EconomyService(logger, dataDir);
         CommandRegistrar registrar = new CommandRegistrar(init, logger);
-        logger.info("Attempting to register commands via " + registrar.getMechanismDescription());
+        logger.info("Command registration mechanism: " + registrar.getMechanismDescription());
         logger.info("Registering commands: bal, pay, baltop, eco");
         registerCommand(registrar, logger, "/bal", new BalCommand("bal", "Show your balance", economyService));
         registerCommand(registrar, logger, "/pay", new PayCommand("pay", "Pay another player", economyService));
@@ -51,10 +51,11 @@ public class EconomyPlugin extends JavaPlugin {
     }
 
     private void registerCommand(CommandRegistrar registrar, Logger logger, String name, Object command) {
-        if (registrar.registerCommand(command)) {
+        String error = registrar.registerCommand(command);
+        if (error == null) {
             logger.info("Registered " + name);
         } else {
-            logger.warning("FAILED to register " + name);
+            logger.warning("FAILED to register " + name + ": " + error);
         }
     }
 

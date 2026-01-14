@@ -2,11 +2,10 @@ package com.hytaleeco.plugin.command;
 
 import com.hytaleeco.plugin.economy.BalanceLedger;
 import com.hytaleeco.plugin.economy.EconomyService;
+import com.hytaleeco.plugin.util.CommandArgs;
 import com.hytaleeco.plugin.util.MessageUtil;
 import com.hytaleeco.plugin.util.PlayerResolver;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
-import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
-import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.basecommands.CommandBase;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import javax.annotation.Nonnull;
@@ -14,14 +13,12 @@ import javax.annotation.Nonnull;
 public class PayCommand extends CommandBase {
 
     private final EconomyService economyService;
-    private final RequiredArg<String> playerArg;
-    private final RequiredArg<String> amountArg;
+    private final String commandName;
 
     public PayCommand(String name, String description, EconomyService economyService) {
         super(name, description);
         this.economyService = economyService;
-        this.playerArg = this.withRequiredArg("player", "hytaleeco.command.pay.player", ArgTypes.STRING);
-        this.amountArg = this.withRequiredArg("amount", "hytaleeco.command.pay.amount", ArgTypes.STRING);
+        this.commandName = name;
     }
 
     @Override
@@ -31,8 +28,13 @@ public class PayCommand extends CommandBase {
             context.sendMessage(MessageUtil.raw("Only players can use /pay."));
             return;
         }
-        String targetName = context.get(this.playerArg);
-        Long amount = parsePositiveAmount(context.get(this.amountArg));
+        java.util.List<String> args = CommandArgs.getArgs(context, commandName);
+        if (args.size() < 2) {
+            context.sendMessage(MessageUtil.raw("Usage: /pay <user> <amt>"));
+            return;
+        }
+        String targetName = args.get(0);
+        Long amount = parsePositiveAmount(args.get(1));
         if (amount == null) {
             context.sendMessage(MessageUtil.raw("Amount must be a number greater than 0."));
             return;
