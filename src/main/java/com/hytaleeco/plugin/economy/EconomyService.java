@@ -20,11 +20,11 @@ public final class EconomyService {
     private final Path dataFile;
     private final Logger logger;
 
-    public EconomyService(Logger logger, Path dataFolder) {
+    public EconomyService(Logger logger, Path balancesPath) {
         this.ledger = new BalanceLedger();
         this.names = new HashMap<>();
         this.logger = logger == null ? Logger.getLogger("EconomyPlugin") : logger;
-        this.dataFile = dataFolder.resolve("balances.json");
+        this.dataFile = balancesPath;
         BalanceStore.Snapshot snapshot = BalanceStore.load(dataFile, logger);
         ledger.loadBalances(snapshot.balances());
         names.putAll(snapshot.names());

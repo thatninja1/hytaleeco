@@ -1,6 +1,5 @@
 package com.hypixel.hytale.server.core.plugin;
 
-import java.io.File;
 import java.util.logging.Logger;
 
 public class JavaPlugin {
@@ -24,7 +23,4 @@ public class JavaPlugin {
         return logger;
     }
 
-    public File getDataFolder() {
-        return new File("build/tmp/plugin-data");
-    }
 }

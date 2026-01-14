@@ -8,6 +8,9 @@ import com.hytaleeco.plugin.economy.EconomyService;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.logging.Logger;
 
 
@@ -23,7 +26,13 @@ public class EconomyPlugin extends JavaPlugin {
     protected void setup() {
         super.setup();
         Logger logger = Logger.getLogger("EconomyPlugin");
-        this.economyService = new EconomyService(logger, this.getDataFolder().toPath());
+        Path dataDir = Paths.get(System.getProperty("user.dir"), "plugins-data", "EconomyPlugin");
+        try {
+            Files.createDirectories(dataDir);
+        } catch (Exception ex) {
+            logger.warning("Failed to create data directory: " + ex.getMessage());
+        }
+        this.economyService = new EconomyService(logger, dataDir.resolve("balances.json"));
         this.getCommandRegistry().registerCommand(new BalCommand("bal", "Show your balance", false, economyService));
         this.getCommandRegistry().registerCommand(new PayCommand("pay", "Pay another player", false, economyService));
         this.getCommandRegistry().registerCommand(new BaltopCommand("baltop", "Show top balances", false, economyService));
