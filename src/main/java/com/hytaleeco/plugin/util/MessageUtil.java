@@ -11,4 +11,8 @@ public final class MessageUtil {
     public static void send(PlayerRef player, String text) {
         player.sendMessage(Message.raw(text));
     }
+
+    public static Message raw(String text) {
+        return Message.raw(text);
+    }
 }

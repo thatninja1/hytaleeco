@@ -35,7 +35,7 @@ public final class EconomyService {
     }
 
     public void refreshPlayer(PlayerRef playerRef) {
-        names.put(playerRef.getUuid(), playerRef.getName());
+        names.put(playerRef.getUuid(), playerRef.getUsername());
     }
 
     public BalanceLedger.TransferResult transfer(UUID from, UUID to, long amount) {

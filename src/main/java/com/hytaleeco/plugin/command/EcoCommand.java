@@ -1,85 +1,72 @@
 package com.hytaleeco.plugin.command;
 
 import com.hytaleeco.plugin.economy.EconomyService;
-import com.hytaleeco.plugin.util.CommandUtil;
 import com.hytaleeco.plugin.util.MessageUtil;
 import com.hytaleeco.plugin.util.PermissionUtil;
-import com.hytaleeco.plugin.util.PlayerLookup;
-import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
-import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
+import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
+import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
+import com.hypixel.hytale.server.core.command.system.basecommands.CommandBase;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
-import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
-import java.util.List;
-import java.util.Optional;
-
-public class EcoCommand extends AbstractPlayerCommand {
+public class EcoCommand extends CommandBase {
 
     private final EconomyService economyService;
+    private final RequiredArg<String> actionArg;
+    private final RequiredArg<PlayerRef> playerArg;
+    private final RequiredArg<Long> amountArg;
 
-    public EcoCommand(String name, String description, boolean requiresConfirmation,
-                      EconomyService economyService) {
-        super(name, description, requiresConfirmation);
+    public EcoCommand(String name, String description, EconomyService economyService) {
+        super(name, description);
         this.economyService = economyService;
+        this.actionArg = this.withRequiredArg("action", "hytaleeco.command.eco.action", ArgTypes.STRING);
+        this.playerArg = this.withRequiredArg("player", "hytaleeco.command.eco.player", ArgTypes.PLAYER_REF);
+        this.amountArg = this.withRequiredArg("amount", "hytaleeco.command.eco.amount", ArgTypes.LONG);
     }
 
     @Override
-    protected void execute(
-            CommandContext commandContext,
-            Store<EntityStore> store,
-            Ref<EntityStore> ref,
-            PlayerRef playerRef,
-            World world
-    ) {
-        if (!PermissionUtil.hasEconomyAdmin(playerRef)) {
-            MessageUtil.send(playerRef, "You do not have permission to use this command.");
+    protected void executeSync(CommandContext context) {
+        if (!PermissionUtil.hasEconomyAdmin(context.sender())) {
+            context.sendMessage(MessageUtil.raw("You do not have permission to use this command."));
             return;
         }
-        List<String> args = CommandUtil.getArguments(commandContext);
-        if (args.size() < 3) {
-            MessageUtil.send(playerRef, "Usage: /eco give {user} {amt} | /eco set {user} {amt}");
+        String action = context.get(this.actionArg);
+        PlayerRef target = context.get(this.playerArg);
+        Long amount = context.get(this.amountArg);
+        if (action == null || target == null || amount == null) {
+            context.sendMessage(MessageUtil.raw("Usage: /eco give {user} {amt} | /eco set {user} {amt}"));
             return;
         }
-        String subcommand = args.get(0).toLowerCase();
-        String targetName = args.get(1);
-        Optional<PlayerRef> target = PlayerLookup.findOnlinePlayer(world, targetName);
-        if (target.isEmpty()) {
-            MessageUtil.send(playerRef, "Player not found or not online.");
-            return;
+        economyService.refreshPlayer(target);
+        PlayerRef sender = context.sender().getPlayer();
+        if (sender != null) {
+            economyService.refreshPlayer(sender);
         }
-        PlayerRef targetRef = target.get();
-        economyService.refreshPlayer(targetRef);
-        economyService.refreshPlayer(playerRef);
 
-        switch (subcommand) {
-            case "give" -> handleGive(args.get(2), playerRef, targetRef);
-            case "set" -> handleSet(args.get(2), playerRef, targetRef);
-            default -> MessageUtil.send(playerRef, "Usage: /eco give {user} {amt} | /eco set {user} {amt}");
+        switch (action.toLowerCase()) {
+            case "give" -> handleGive(amount, context, target);
+            case "set" -> handleSet(amount, context, target);
+            default -> context.sendMessage(MessageUtil.raw("Usage: /eco give {user} {amt} | /eco set {user} {amt}"));
         }
     }
 
-    private void handleGive(String rawAmount, PlayerRef actor, PlayerRef target) {
-        Long amount = CommandUtil.parsePositiveAmount(rawAmount);
-        if (amount == null) {
-            MessageUtil.send(actor, "Amount must be a number greater than 0.");
+    private void handleGive(long amount, CommandContext context, PlayerRef target) {
+        if (amount <= 0) {
+            context.sendMessage(MessageUtil.raw("Amount must be a number greater than 0."));
             return;
         }
         economyService.give(target.getUuid(), amount);
-        MessageUtil.send(actor, "Gave " + target.getName() + " " + amount + ".");
-        MessageUtil.send(target, "You received " + amount + " from an admin.");
+        context.sendMessage(MessageUtil.raw("Gave " + target.getUsername() + " " + amount + "."));
+        target.sendMessage(MessageUtil.raw("You received " + amount + " from an admin."));
     }
 
-    private void handleSet(String rawAmount, PlayerRef actor, PlayerRef target) {
-        Long amount = CommandUtil.parseNonNegativeAmount(rawAmount);
-        if (amount == null) {
-            MessageUtil.send(actor, "Amount must be a number 0 or higher.");
+    private void handleSet(long amount, CommandContext context, PlayerRef target) {
+        if (amount < 0) {
+            context.sendMessage(MessageUtil.raw("Amount must be a number 0 or higher."));
             return;
         }
         economyService.setBalance(target.getUuid(), amount);
-        MessageUtil.send(actor, "Set " + target.getName() + "'s balance to " + amount + ".");
-        MessageUtil.send(target, "Your balance was set to " + amount + " by an admin.");
+        context.sendMessage(MessageUtil.raw("Set " + target.getUsername() + "'s balance to " + amount + "."));
+        target.sendMessage(MessageUtil.raw("Your balance was set to " + amount + " by an admin."));
     }
 }

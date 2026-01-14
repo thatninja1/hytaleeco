@@ -16,6 +16,10 @@ public class PlayerRef {
         return name;
     }
 
+    public String getUsername() {
+        return name;
+    }
+
     public void sendMessage(Message message) {
     }
 

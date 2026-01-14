@@ -2,70 +2,54 @@ package com.hytaleeco.plugin.command;
 
 import com.hytaleeco.plugin.economy.BalanceLedger;
 import com.hytaleeco.plugin.economy.EconomyService;
-import com.hytaleeco.plugin.util.CommandUtil;
 import com.hytaleeco.plugin.util.MessageUtil;
-import com.hytaleeco.plugin.util.PlayerLookup;
-import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
-import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
+import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
+import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
+import com.hypixel.hytale.server.core.command.system.basecommands.CommandBase;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
-import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
-import java.util.List;
-import java.util.Optional;
-
-public class PayCommand extends AbstractPlayerCommand {
+public class PayCommand extends CommandBase {
 
     private final EconomyService economyService;
+    private final RequiredArg<PlayerRef> playerArg;
+    private final RequiredArg<Long> amountArg;
 
-    public PayCommand(String name, String description, boolean requiresConfirmation,
-                      EconomyService economyService) {
-        super(name, description, requiresConfirmation);
+    public PayCommand(String name, String description, EconomyService economyService) {
+        super(name, description);
         this.economyService = economyService;
+        this.playerArg = this.withRequiredArg("player", "hytaleeco.command.pay.player", ArgTypes.PLAYER_REF);
+        this.amountArg = this.withRequiredArg("amount", "hytaleeco.command.pay.amount", ArgTypes.LONG);
     }
 
     @Override
-    protected void execute(
-            CommandContext commandContext,
-            Store<EntityStore> store,
-            Ref<EntityStore> ref,
-            PlayerRef playerRef,
-            World world
-    ) {
-        List<String> args = CommandUtil.getArguments(commandContext);
-        if (args.size() < 2) {
-            MessageUtil.send(playerRef, "Usage: /pay {user} {amt}");
+    protected void executeSync(CommandContext context) {
+        PlayerRef sender = context.sender().getPlayer();
+        if (sender == null) {
+            context.sendMessage(MessageUtil.raw("Only players can use /pay."));
             return;
         }
-        String targetName = args.get(0);
-        Long amount = CommandUtil.parsePositiveAmount(args.get(1));
-        if (amount == null) {
-            MessageUtil.send(playerRef, "Amount must be a number greater than 0.");
+        PlayerRef target = context.get(this.playerArg);
+        Long amount = context.get(this.amountArg);
+        if (amount == null || amount <= 0) {
+            context.sendMessage(MessageUtil.raw("Amount must be a number greater than 0."));
             return;
         }
-        if (playerRef.getName().equalsIgnoreCase(targetName)) {
-            MessageUtil.send(playerRef, "You cannot pay yourself.");
+        if (sender.getUuid().equals(target.getUuid())) {
+            context.sendMessage(MessageUtil.raw("You cannot pay yourself."));
             return;
         }
-        Optional<PlayerRef> target = PlayerLookup.findOnlinePlayer(world, targetName);
-        if (target.isEmpty()) {
-            MessageUtil.send(playerRef, "Player not found or not online.");
-            return;
-        }
-        PlayerRef targetRef = target.get();
-        economyService.refreshPlayer(playerRef);
-        economyService.refreshPlayer(targetRef);
-        BalanceLedger.TransferResult result = economyService.transfer(playerRef.getUuid(), targetRef.getUuid(), amount);
+        economyService.refreshPlayer(sender);
+        economyService.refreshPlayer(target);
+        BalanceLedger.TransferResult result = economyService.transfer(sender.getUuid(), target.getUuid(), amount);
         switch (result) {
             case SUCCESS -> {
-                MessageUtil.send(playerRef, "You paid " + targetRef.getName() + " " + amount + ".");
-                MessageUtil.send(targetRef, "You received " + amount + " from " + playerRef.getName() + ".");
+                context.sendMessage(MessageUtil.raw("You paid " + target.getUsername() + " " + amount + "."));
+                target.sendMessage(MessageUtil.raw("You received " + amount + " from " + sender.getUsername() + "."));
             }
-            case INSUFFICIENT_FUNDS -> MessageUtil.send(playerRef, "You do not have enough funds.");
-            case SELF_TRANSFER -> MessageUtil.send(playerRef, "You cannot pay yourself.");
-            case INVALID_AMOUNT -> MessageUtil.send(playerRef, "Amount must be a number greater than 0.");
+            case INSUFFICIENT_FUNDS -> context.sendMessage(MessageUtil.raw("You do not have enough funds."));
+            case SELF_TRANSFER -> context.sendMessage(MessageUtil.raw("You cannot pay yourself."));
+            case INVALID_AMOUNT -> context.sendMessage(MessageUtil.raw("Amount must be a number greater than 0."));
         }
     }
 }

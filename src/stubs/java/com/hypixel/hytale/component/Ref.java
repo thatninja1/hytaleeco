@@ -1,4 +1,0 @@
-package com.hypixel.hytale.component;
-
-public interface Ref<T> {
-}
