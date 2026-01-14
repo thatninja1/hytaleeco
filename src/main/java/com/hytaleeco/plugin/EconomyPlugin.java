@@ -23,8 +23,8 @@ public class EconomyPlugin extends JavaPlugin {
     }
 
     @Override
-    protected void setup() {
-        super.setup();
+    protected void setup(JavaPluginInit init) {
+        super.setup(init);
         Logger logger = Logger.getLogger("EconomyPlugin");
         Path dataDir = Paths.get(System.getProperty("user.dir"), "plugins-data", "EconomyPlugin");
         try {
@@ -33,10 +33,10 @@ public class EconomyPlugin extends JavaPlugin {
             logger.warning("Failed to create data directory: " + ex.getMessage());
         }
         this.economyService = new EconomyService(logger, dataDir.resolve("balances.json"));
-        this.getCommandRegistry().registerCommand(new BalCommand("bal", "Show your balance", false, economyService));
-        this.getCommandRegistry().registerCommand(new PayCommand("pay", "Pay another player", false, economyService));
-        this.getCommandRegistry().registerCommand(new BaltopCommand("baltop", "Show top balances", false, economyService));
-        this.getCommandRegistry().registerCommand(new EcoCommand("eco", "Economy admin commands", false, economyService));
+        init.getCommandRegistry().registerCommand(new BalCommand("bal", "Show your balance", false, economyService));
+        init.getCommandRegistry().registerCommand(new PayCommand("pay", "Pay another player", false, economyService));
+        init.getCommandRegistry().registerCommand(new BaltopCommand("baltop", "Show top balances", false, economyService));
+        init.getCommandRegistry().registerCommand(new EcoCommand("eco", "Economy admin commands", false, economyService));
     }
 
 }
