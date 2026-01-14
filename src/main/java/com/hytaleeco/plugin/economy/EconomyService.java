@@ -1,6 +1,5 @@
 package com.hytaleeco.plugin.economy;
 
-import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 
 import java.nio.file.Path;
@@ -21,11 +20,11 @@ public final class EconomyService {
     private final Path dataFile;
     private final Logger logger;
 
-    public EconomyService(JavaPlugin plugin) {
+    public EconomyService(Logger logger, Path dataFolder) {
         this.ledger = new BalanceLedger();
         this.names = new HashMap<>();
-        this.logger = plugin.getLogger();
-        this.dataFile = plugin.getDataFolder().toPath().resolve("balances.json");
+        this.logger = logger == null ? Logger.getLogger("EconomyPlugin") : logger;
+        this.dataFile = dataFolder.resolve("balances.json");
         BalanceStore.Snapshot snapshot = BalanceStore.load(dataFile, logger);
         ledger.loadBalances(snapshot.balances());
         names.putAll(snapshot.names());

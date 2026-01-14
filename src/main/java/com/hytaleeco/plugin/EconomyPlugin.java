@@ -8,6 +8,8 @@ import com.hytaleeco.plugin.economy.EconomyService;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 
+import java.util.logging.Logger;
+
 
 public class EconomyPlugin extends JavaPlugin {
 
@@ -20,7 +22,8 @@ public class EconomyPlugin extends JavaPlugin {
     @Override
     protected void setup() {
         super.setup();
-        this.economyService = new EconomyService(this);
+        Logger logger = Logger.getLogger("EconomyPlugin");
+        this.economyService = new EconomyService(logger, this.getDataFolder().toPath());
         this.getCommandRegistry().registerCommand(new BalCommand("bal", "Show your balance", false, economyService));
         this.getCommandRegistry().registerCommand(new PayCommand("pay", "Pay another player", false, economyService));
         this.getCommandRegistry().registerCommand(new BaltopCommand("baltop", "Show top balances", false, economyService));
