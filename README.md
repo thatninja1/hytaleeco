@@ -1,22 +1,29 @@
-# HelloPlugin
+# EconomyPlugin
 
-A simple example plugin for Hytale servers demonstrating the basics of plugin development.
-
-📺 **Video Tutorial**: [Watch on YouTube](https://www.youtube.com/watch?v=NEw9QjzZ9nM)
+A focused economy plugin for Hytale servers. This project contains only economy-related commands and persistence.
 
 ## Features
 
-- Registers a `/hello` command
-- Displays a title message to players when executed
+- `/bal` or `/balance` — shows your balance
+- `/pay {user} {amt}` — transfer funds to another online player
+- `/baltop` — shows the top balances
+- `/eco give {user} {amt}` — admin-only balance increase
+- `/eco set {user} {amt}` — admin-only balance set
+
+Balances are stored per-player using UUIDs and persisted to `balances.json` in the plugin data folder.
+
+## Permissions
+
+- `hytaleeco.admin` or `economy.admin` — required for `/eco give` and `/eco set` (ops are also allowed)
 
 ## Requirements
 
 - Java 17+
-- Hytale Server API (`HytaleServer.jar`)
+- Hytale Server API (`HytaleServer.jar`) for local builds
 
 ## Getting HytaleServer.jar
 
-You need the `HytaleServer.jar` file to compile plugins. There are two ways to obtain it:
+You need the `HytaleServer.jar` file to compile plugins locally. There are two ways to obtain it:
 
 ### Option 1: From Hytale Launcher
 
@@ -38,14 +45,24 @@ For more details, see the official [Hytale Server Manual](https://support.hytale
 
 ## Building
 
-1. Place `HytaleServer.jar` in the `libs/` directory
+### Local build (with HytaleServer.jar)
+
+1. Place `HytaleServer.jar` in the `libs/` directory.
 2. Build with Gradle:
 
 ```bash
-./gradlew build
+./gradlew clean build
 ```
 
-The compiled plugin JAR will be located at `build/libs/HelloPlugin-1.0-SNAPSHOT.jar`.
+### CI build (without server jar)
+
+The project supports a stubbed build for CI via:
+
+```bash
+./gradlew clean build -Pci=true
+```
+
+The compiled plugin JAR will be located at `build/libs/EconomyPlugin-1.0.0.jar`.
 
 ## Installation
 
@@ -53,20 +70,20 @@ Copy the built JAR file to your Hytale server's `plugins/` directory.
 
 ## Usage
 
-In-game, use the command:
-
-```
-/hello
-```
-
-This will display a title message saying "Hello world!" to the player.
+- `/bal` or `/balance`
+- `/pay {user} {amt}`
+- `/baltop`
+- `/eco give {user} {amt}`
+- `/eco set {user} {amt}`
 
 ## Project Structure
 
 ```
-src/main/java/com/example/plugin/
-├── HelloPlugin.java    # Main plugin class
-└── HelloCommand.java   # Command implementation
+src/main/java/com/hytaleeco/plugin/
+├── EconomyPlugin.java          # Main plugin class
+├── command/                    # Command implementations
+├── economy/                    # Economy logic + persistence
+└── util/                       # Utility helpers
 ```
 
 ## License

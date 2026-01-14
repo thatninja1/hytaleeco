@@ -1,0 +1,49 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Verify EconomyPlugin superclass
+        run: ./gradlew test -Pci=true --tests com.hytaleeco.plugin.EconomyPluginTest
+
+      - name: Ensure no crashing registry accessors
+        run: |
+          pattern1="get""CommandRegistry("
+          pattern2="command""Registry("
+          pattern3="ArgTypes"
+          pattern4="Required""Arg"
+          pattern5="Optional""Arg"
+          pattern6="with""Required""Arg"
+          pattern7="with""Optional""Arg"
+          if rg -n "$pattern1|$pattern2|$pattern3\\.|$pattern4|$pattern5|$pattern6|$pattern7" .; then
+            echo "Found forbidden registry accessors."
+            exit 1
+          fi
+
+      - name: Build
+        run: ./gradlew clean build -Pci=true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: economy-plugin-jar
+          path: build/libs/*.jar
