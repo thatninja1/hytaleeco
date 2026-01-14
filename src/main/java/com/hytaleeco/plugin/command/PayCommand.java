@@ -3,6 +3,7 @@ package com.hytaleeco.plugin.command;
 import com.hytaleeco.plugin.economy.BalanceLedger;
 import com.hytaleeco.plugin.economy.EconomyService;
 import com.hytaleeco.plugin.util.MessageUtil;
+import com.hytaleeco.plugin.util.PlayerResolver;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
@@ -13,13 +14,13 @@ import javax.annotation.Nonnull;
 public class PayCommand extends CommandBase {
 
     private final EconomyService economyService;
-    private final RequiredArg<PlayerRef> playerArg;
+    private final RequiredArg<String> playerArg;
     private final RequiredArg<String> amountArg;
 
     public PayCommand(String name, String description, EconomyService economyService) {
         super(name, description);
         this.economyService = economyService;
-        this.playerArg = this.withRequiredArg("player", "hytaleeco.command.pay.player", ArgTypes.PLAYER_REF);
+        this.playerArg = this.withRequiredArg("player", "hytaleeco.command.pay.player", ArgTypes.STRING);
         this.amountArg = this.withRequiredArg("amount", "hytaleeco.command.pay.amount", ArgTypes.STRING);
     }
 
@@ -30,13 +31,18 @@ public class PayCommand extends CommandBase {
             context.sendMessage(MessageUtil.raw("Only players can use /pay."));
             return;
         }
-        PlayerRef target = context.get(this.playerArg);
+        String targetName = context.get(this.playerArg);
         Long amount = parsePositiveAmount(context.get(this.amountArg));
         if (amount == null) {
             context.sendMessage(MessageUtil.raw("Amount must be a number greater than 0."));
             return;
         }
-        if (sender.getUuid().equals(target.getUuid())) {
+        PlayerRef target = PlayerResolver.findOnlinePlayer(targetName);
+        if (target == null) {
+            context.sendMessage(MessageUtil.raw("Player not found."));
+            return;
+        }
+        if (sender.getUsername().equals(target.getUsername())) {
             context.sendMessage(MessageUtil.raw("You cannot pay yourself."));
             return;
         }

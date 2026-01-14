@@ -3,6 +3,7 @@ package com.hytaleeco.plugin.command;
 import com.hytaleeco.plugin.economy.EconomyService;
 import com.hytaleeco.plugin.util.MessageUtil;
 import com.hytaleeco.plugin.util.PermissionUtil;
+import com.hytaleeco.plugin.util.PlayerResolver;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
@@ -14,14 +15,14 @@ public class EcoCommand extends CommandBase {
 
     private final EconomyService economyService;
     private final RequiredArg<String> actionArg;
-    private final RequiredArg<PlayerRef> playerArg;
+    private final RequiredArg<String> playerArg;
     private final RequiredArg<String> amountArg;
 
     public EcoCommand(String name, String description, EconomyService economyService) {
         super(name, description);
         this.economyService = economyService;
         this.actionArg = this.withRequiredArg("action", "hytaleeco.command.eco.action", ArgTypes.STRING);
-        this.playerArg = this.withRequiredArg("player", "hytaleeco.command.eco.player", ArgTypes.PLAYER_REF);
+        this.playerArg = this.withRequiredArg("player", "hytaleeco.command.eco.player", ArgTypes.STRING);
         this.amountArg = this.withRequiredArg("amount", "hytaleeco.command.eco.amount", ArgTypes.STRING);
     }
 
@@ -32,10 +33,15 @@ public class EcoCommand extends CommandBase {
             return;
         }
         String action = context.get(this.actionArg);
-        PlayerRef target = context.get(this.playerArg);
+        String targetName = context.get(this.playerArg);
         Long amount = parseAmount(context.get(this.amountArg));
-        if (action == null || target == null || amount == null) {
+        if (action == null || targetName == null || amount == null) {
             context.sendMessage(MessageUtil.raw("Usage: /eco give {user} {amt} | /eco set {user} {amt}"));
+            return;
+        }
+        PlayerRef target = PlayerResolver.findOnlinePlayer(targetName);
+        if (target == null) {
+            context.sendMessage(MessageUtil.raw("Player not found."));
             return;
         }
         economyService.refreshPlayer(target);
