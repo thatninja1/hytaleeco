@@ -25,6 +25,15 @@ jobs:
       - name: Verify EconomyPlugin superclass
         run: ./gradlew test -Pci=true --tests com.hytaleeco.plugin.EconomyPluginTest
 
+      - name: Ensure no crashing registry accessors
+        run: |
+          pattern1="get""CommandRegistry("
+          pattern2="command""Registry("
+          if rg -n "$pattern1|$pattern2" .; then
+            echo "Found forbidden registry accessors."
+            exit 1
+          fi
+
       - name: Build
         run: ./gradlew clean build -Pci=true
 
