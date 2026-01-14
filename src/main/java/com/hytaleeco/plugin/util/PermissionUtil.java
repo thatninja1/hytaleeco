@@ -8,6 +8,8 @@ public final class PermissionUtil {
     }
 
     public static boolean hasEconomyAdmin(PlayerRef player) {
-        return player.hasPermission("economy.admin") || player.isOp();
+        return player.hasPermission("hytaleeco.admin")
+                || player.hasPermission("economy.admin")
+                || player.isOp();
     }
 }

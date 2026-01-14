@@ -4,7 +4,7 @@ A focused economy plugin for Hytale servers. This project contains only economy-
 
 ## Features
 
-- `/bal` — shows your balance
+- `/bal` or `/balance` — shows your balance (optional target)
 - `/pay {user} {amt}` — transfer funds to another online player
 - `/baltop` — shows the top balances
 - `/eco give {user} {amt}` — admin-only balance increase
@@ -14,7 +14,7 @@ Balances are stored per-player using UUIDs and persisted to `balances.json` in t
 
 ## Permissions
 
-- `economy.admin` — required for `/eco give` and `/eco set` (ops are also allowed)
+- `hytaleeco.admin` or `economy.admin` — required for `/eco give` and `/eco set` (ops are also allowed)
 
 ## Requirements
 
@@ -70,7 +70,7 @@ Copy the built JAR file to your Hytale server's `plugins/` directory.
 
 ## Usage
 
-- `/bal`
+- `/bal` or `/balance` (optional `{user}`)
 - `/pay {user} {amt}`
 - `/baltop`
 - `/eco give {user} {amt}`

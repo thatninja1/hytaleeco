@@ -3,6 +3,7 @@ package com.hytaleeco.plugin.command;
 import com.hytaleeco.plugin.economy.EconomyService;
 import com.hytaleeco.plugin.util.CommandUtil;
 import com.hytaleeco.plugin.util.MessageUtil;
+import com.hytaleeco.plugin.util.PlayerLookup;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
@@ -32,12 +33,21 @@ public class BalCommand extends AbstractPlayerCommand {
             World world
     ) {
         List<String> args = CommandUtil.getArguments(commandContext);
-        if (!args.isEmpty()) {
-            MessageUtil.send(playerRef, "Usage: /bal");
+        economyService.refreshPlayer(playerRef);
+        if (args.isEmpty()) {
+            long balance = economyService.getBalance(playerRef.getUuid());
+            MessageUtil.send(playerRef, "Your balance is " + balance + ".");
             return;
         }
-        economyService.refreshPlayer(playerRef);
-        long balance = economyService.getBalance(playerRef.getUuid());
-        MessageUtil.send(playerRef, "Your balance is " + balance + ".");
+        if (args.size() > 1) {
+            MessageUtil.send(playerRef, "Usage: /bal [user]");
+            return;
+        }
+        String targetName = args.get(0);
+        PlayerLookup.findOnlinePlayer(world, targetName).ifPresentOrElse(targetRef -> {
+            economyService.refreshPlayer(targetRef);
+            long balance = economyService.getBalance(targetRef.getUuid());
+            MessageUtil.send(playerRef, targetRef.getName() + "'s balance is " + balance + ".");
+        }, () -> MessageUtil.send(playerRef, "Player not found."));
     }
 }
