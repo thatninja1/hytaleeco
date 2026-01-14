@@ -36,13 +36,13 @@ public class EconomyPlugin extends JavaPlugin {
         }
         this.economyService = new EconomyService(logger, dataDir);
         logger.info("Registering commands: bal, pay, baltop, eco");
-        this.getCommandRegistry().registerCommand(new BalCommand("bal", "Show your balance", economyService));
+        init.commandRegistry().registerCommand(new BalCommand("bal", "Show your balance", economyService));
         logger.info("Registered /bal");
-        this.getCommandRegistry().registerCommand(new PayCommand("pay", "Pay another player", economyService));
+        init.commandRegistry().registerCommand(new PayCommand("pay", "Pay another player", economyService));
         logger.info("Registered /pay");
-        this.getCommandRegistry().registerCommand(new BaltopCommand("baltop", "Show top balances", economyService));
+        init.commandRegistry().registerCommand(new BaltopCommand("baltop", "Show top balances", economyService));
         logger.info("Registered /baltop");
-        this.getCommandRegistry().registerCommand(new EcoCommand("eco", "Economy admin commands", economyService));
+        init.commandRegistry().registerCommand(new EcoCommand("eco", "Economy admin commands", economyService));
         logger.info("Registered /eco");
         logger.info("EconomyPlugin setup complete");
     }
